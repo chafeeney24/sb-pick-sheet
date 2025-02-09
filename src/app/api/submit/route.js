@@ -1,16 +1,19 @@
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { v4 as uuidv4 } from "uuid";
 
-const client = new DynamoDBClient({ region: process.env.AWS_REGION });
-const tableName = process.env.DYNAMODB_TABLE; // Set this as an environment variable in Amplify
+// Use region from environment or default to us-east-2
+const client = new DynamoDBClient({ region: process.env.MY_REGION || 'us-east-2' });
+const tableName = process.env.DYNAMODB_TABLE; // Set this to your new table name, e.g., "SubmissionsV2"
 
 export async function POST(request) {
     try {
+        console.log("DynamoDB Table Name:", tableName);
         const submission = await request.json();
-        // Prepare an item that includes a generated ID, name, the picks (as JSON), and a timestamp.
+
+        // Build the item with the new primary key "id"
         const item = {
-            id: { S: uuidv4() },
-            name: { S: submission.name },
+            id: { S: uuidv4() },            // Primary key is now "id"
+            userName: { S: submission.name }, // Store the user's name in a separate attribute
             picks: { S: JSON.stringify(submission) },
             createdAt: { S: new Date().toISOString() }
         };
